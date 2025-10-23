@@ -1,1 +1,480 @@
-<p>admin-dashboard works!</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - E-commerce</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background-color: #f8fafc;
+        }
+        
+        .sidebar {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .chart-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+        }
+        
+        .progress-bar {
+            transition: width 1.5s ease-in-out;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .sidebar-item {
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .sidebar-item:hover, .sidebar-item.active {
+            background-color: #f1f5f9;
+            border-left-color: #3b82f6;
+        }
+        
+        .notification-dot {
+            animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+        
+        @keyframes ping {
+            75%, 100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="sidebar w-64 bg-white shadow-md z-10">
+            <div class="p-6">
+                <h1 class="text-xl font-bold text-gray-800 flex items-center">
+                    <i class="fas fa-store mr-2 text-blue-500"></i>
+                    E-Commerce Admin
+                </h1>
+            </div>
+            
+            <nav class="mt-6">
+                <div class="px-4 space-y-2">
+                    <a href="#" class="sidebar-item active flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                        <i class="fas fa-chart-pie mr-3 text-blue-500"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    
+                    <a href="#" class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                        <i class="fas fa-shopping-bag mr-3 text-green-500"></i>
+                        <span>Products</span>
+                        <span class="ml-auto bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">15</span>
+                    </a>
+                    
+                    <a href="#" class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                        <i class="fas fa-shopping-cart mr-3 text-purple-500"></i>
+                        <span>Orders</span>
+                        <span class="ml-auto bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">24</span>
+                    </a>
+                    
+                    <a href="#" class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                        <i class="fas fa-users mr-3 text-yellow-500"></i>
+                        <span>Customers</span>
+                    </a>
+                    
+                    <a href="#" class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                        <i class="fas fa-chart-bar mr-3 text-indigo-500"></i>
+                        <span>Analytics</span>
+                    </a>
+                    
+                    <a href="#" class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                        <i class="fas fa-tags mr-3 text-pink-500"></i>
+                        <span>Discounts</span>
+                    </a>
+                    
+                    <a href="#" class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                        <i class="fas fa-cog mr-3 text-gray-500"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+            </nav>
+            
+            <div class="absolute bottom-0 w-full p-4 border-t">
+                <div class="flex items-center">
+                    <img class="h-10 w-10 rounded-full object-cover" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="Admin User">
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-gray-900">John Doe</p>
+                        <p class="text-xs text-gray-500">Administrator</p>
+                    </div>
+                    <button class="ml-auto text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Header -->
+            <header class="bg-white shadow-sm z-10">
+                <div class="flex items-center justify-between px-6 py-4">
+                    <div class="flex items-center">
+                        <h2 class="text-lg font-semibold text-gray-800">Dashboard</h2>
+                        <div class="ml-4 flex items-center text-sm text-gray-500">
+                            <span>Home</span>
+                            <i class="fas fa-chevron-right mx-2 text-xs"></i>
+                            <span class="text-blue-500">Dashboard</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <div class="relative">
+                            <button class="p-2 text-gray-500 hover:text-gray-700 focus:outline-none">
+                                <i class="fas fa-bell text-xl"></i>
+                                <span class="absolute top-0 right-0 h-3 w-3 bg-red-500 rounded-full notification-dot"></span>
+                            </button>
+                        </div>
+                        
+                        <div class="relative">
+                            <input type="text" placeholder="Search..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Main Content Area -->
+            <main class="flex-1 overflow-y-auto p-6 fade-in">
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="card-hover bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-lg bg-blue-100 text-blue-500">
+                                <i class="fas fa-shopping-cart text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-sm font-medium text-gray-500">Total Orders</h3>
+                                <p class="text-2xl font-semibold text-gray-800">1,248</p>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center text-sm">
+                            <span class="text-green-500 flex items-center">
+                                <i class="fas fa-arrow-up mr-1"></i>
+                                12.5%
+                            </span>
+                            <span class="text-gray-500 ml-2">from last month</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card-hover bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-lg bg-green-100 text-green-500">
+                                <i class="fas fa-dollar-sign text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-sm font-medium text-gray-500">Revenue</h3>
+                                <p class="text-2xl font-semibold text-gray-800">$24,890</p>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center text-sm">
+                            <span class="text-green-500 flex items-center">
+                                <i class="fas fa-arrow-up mr-1"></i>
+                                8.2%
+                            </span>
+                            <span class="text-gray-500 ml-2">from last month</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card-hover bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-lg bg-purple-100 text-purple-500">
+                                <i class="fas fa-users text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-sm font-medium text-gray-500">Customers</h3>
+                                <p class="text-2xl font-semibold text-gray-800">8,452</p>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center text-sm">
+                            <span class="text-green-500 flex items-center">
+                                <i class="fas fa-arrow-up mr-1"></i>
+                                5.7%
+                            </span>
+                            <span class="text-gray-500 ml-2">from last month</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card-hover bg-white rounded-xl shadow-sm p-6 border border-gray-100 pulse">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-lg bg-yellow-100 text-yellow-500">
+                                <i class="fas fa-chart-line text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-sm font-medium text-gray-500">Growth</h3>
+                                <p class="text-2xl font-semibold text-gray-800">+24.3%</p>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center text-sm">
+                            <span class="text-green-500 flex items-center">
+                                <i class="fas fa-arrow-up mr-1"></i>
+                                3.2%
+                            </span>
+                            <span class="text-gray-500 ml-2">from last month</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Charts and Additional Info -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <!-- Sales Chart -->
+                    <div class="lg:col-span-2 bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-semibold text-gray-800">Sales Overview</h3>
+                            <div class="flex space-x-2">
+                                <button class="px-3 py-1 text-xs bg-blue-100 text-blue-600 rounded-lg">Week</button>
+                                <button class="px-3 py-1 text-xs bg-gray-100 text-gray-600 rounded-lg">Month</button>
+                                <button class="px-3 py-1 text-xs bg-gray-100 text-gray-600 rounded-lg">Year</button>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-container h-64 rounded-lg flex items-center justify-center text-white">
+                            <div class="text-center">
+                                <i class="fas fa-chart-bar text-4xl mb-2"></i>
+                                <p>Sales Chart Visualization</p>
+                                <p class="text-sm opacity-80 mt-1">(Interactive chart would render here)</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Activity -->
+                    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-6">Recent Activity</h3>
+                        
+                        <div class="space-y-4">
+                            <div class="flex">
+                                <div class="flex-shrink-0 mr-3">
+                                    <div class="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center text-green-500">
+                                        <i class="fas fa-shopping-cart"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-800">New order received</p>
+                                    <p class="text-xs text-gray-500">Order #2841 was placed</p>
+                                    <p class="text-xs text-gray-400 mt-1">5 minutes ago</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex">
+                                <div class="flex-shrink-0 mr-3">
+                                    <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500">
+                                        <i class="fas fa-user-plus"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-800">New customer registered</p>
+                                    <p class="text-xs text-gray-500">Jane Doe signed up</p>
+                                    <p class="text-xs text-gray-400 mt-1">1 hour ago</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex">
+                                <div class="flex-shrink-0 mr-3">
+                                    <div class="h-10 w-10 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-500">
+                                        <i class="fas fa-exclamation-circle"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-800">High demand product</p>
+                                    <p class="text-xs text-gray-500">Wireless Earbuds is low in stock</p>
+                                    <p class="text-xs text-gray-400 mt-1">2 hours ago</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex">
+                                <div class="flex-shrink-0 mr-3">
+                                    <div class="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-500">
+                                        <i class="fas fa-chart-line"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-800">Campaign performance</p>
+                                    <p class="text-xs text-gray-500">Summer sale campaign is 45% successful</p>
+                                    <p class="text-xs text-gray-400 mt-1">5 hours ago</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Orders and Top Products -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Recent Orders -->
+                    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-semibold text-gray-800">Recent Orders</h3>
+                            <a href="#" class="text-sm text-blue-500 hover:text-blue-700">View All</a>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead>
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                    <tr>
+                                        <td class="px-4 py-3 text-sm font-medium text-gray-800">#2841</td>
+                                        <td class="px-4 py-3 text-sm text-gray-800">John Smith</td>
+                                        <td class="px-4 py-3">
+                                            <span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">Completed</span>
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-800">$128.90</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-3 text-sm font-medium text-gray-800">#2842</td>
+                                        <td class="px-4 py-3 text-sm text-gray-800">Sarah Johnson</td>
+                                        <td class="px-4 py-3">
+                                            <span class="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">Pending</span>
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-800">$256.50</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-3 text-sm font-medium text-gray-800">#2843</td>
+                                        <td class="px-4 py-3 text-sm text-gray-800">Michael Brown</td>
+                                        <td class="px-4 py-3">
+                                            <span class="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">Processing</span>
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-800">$78.25</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-3 text-sm font-medium text-gray-800">#2844</td>
+                                        <td class="px-4 py-3 text-sm text-gray-800">Emily Davis</td>
+                                        <td class="px-4 py-3">
+                                            <span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">Completed</span>
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-gray-800">$342.00</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Top Products -->
+                    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-semibold text-gray-800">Top Products</h3>
+                            <a href="#" class="text-sm text-blue-500 hover:text-blue-700">View All</a>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-center">
+                                <div class="h-12 w-12 rounded-lg bg-blue-100 flex items-center justify-center text-blue-500">
+                                    <i class="fas fa-headphones"></i>
+                                </div>
+                                <div class="ml-4 flex-1">
+                                    <p class="text-sm font-medium text-gray-800">Wireless Earbuds</p>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="bg-blue-500 h-2 rounded-full progress-bar" style="width: 85%"></div>
+                                    </div>
+                                </div>
+                                <div class="text-sm font-medium text-gray-800">324 sold</div>
+                            </div>
+                            
+                            <div class="flex items-center">
+                                <div class="h-12 w-12 rounded-lg bg-green-100 flex items-center justify-center text-green-500">
+                                    <i class="fas fa-mobile-alt"></i>
+                                </div>
+                                <div class="ml-4 flex-1">
+                                    <p class="text-sm font-medium text-gray-800">Smartphone X</p>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="bg-green-500 h-2 rounded-full progress-bar" style="width: 72%"></div>
+                                    </div>
+                                </div>
+                                <div class="text-sm font-medium text-gray-800">278 sold</div>
+                            </div>
+                            
+                            <div class="flex items-center">
+                                <div class="h-12 w-12 rounded-lg bg-purple-100 flex items-center justify-center text-purple-500">
+                                    <i class="fas fa-laptop"></i>
+                                </div>
+                                <div class="ml-4 flex-1">
+                                    <p class="text-sm font-medium text-gray-800">Ultrabook Pro</p>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="bg-purple-500 h-2 rounded-full progress-bar" style="width: 64%"></div>
+                                    </div>
+                                </div>
+                                <div class="text-sm font-medium text-gray-800">192 sold</div>
+                            </div>
+                            
+                            <div class="flex items-center">
+                                <div class="h-12 w-12 rounded-lg bg-yellow-100 flex items-center justify-center text-yellow-500">
+                                    <i class="fas fa-tablet-alt"></i>
+                                </div>
+                                <div class="ml-4 flex-1">
+                                    <p class="text-sm font-medium text-gray-800">Tablet Mini</p>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="bg-yellow-500 h-2 rounded-full progress-bar" style="width: 58%"></div>
+                                    </div>
+                                </div>
+                                <div class="text-sm font-medium text-gray-800">167 sold</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Simple animation for progress bars
+        document.addEventListener('DOMContentLoaded', function() {
+            const progressBars = document.querySelectorAll('.progress-bar');
+            progressBars.forEach(bar => {
+                // Reset width to 0 then animate to actual width
+                const width = bar.style.width;
+                bar.style.width = '0';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 300);
+            });
+        });
+    </script>
+</body>
+</html>

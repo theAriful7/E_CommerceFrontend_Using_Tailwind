@@ -9,11 +9,20 @@ import { CustomerWishlistComponent } from './customer/customer-wishlist/customer
 import { CustomerAddressComponent } from './customer/customer-address/customer-address.component';
 import { CustomerComponent } from './customer/customer.component';
 import { HomeComponent } from './home/home.component';
+import { LoginComponent } from './auth/login/login.component';
+import { RegisterComponent } from './auth/register/register.component';
+import { AdminDashboardComponent } from './admin/admin-dashboard/admin-dashboard.component';
+import { AdminProductsComponent } from './admin/admin-products/admin-products.component';
 
 const routes: Routes = [
   // Storefront routes - No layout, just plain pages
   { path: '', component: HomeComponent }, // Main store page
   { path: 'home', component: HomeComponent },
+  { path: 'login', component: LoginComponent },
+  { path: 'register', component: RegisterComponent },
+  { path: 'admin-dashboard', component: AdminDashboardComponent },
+  { path: 'admin-product', component: AdminProductsComponent },
+  
   
   // Customer dashboard routes - With customer layout
   { 
