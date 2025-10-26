@@ -19,6 +19,10 @@ import { ProductFormComponent } from './components/product-form/product-form.com
 import { SubCategoryFormComponent } from './components/sub-category-form/sub-category-form.component';
 import { SubCategoryListComponent } from './components/sub-category-list/sub-category-list.component';
 import { ProductListComponent } from './components/product-list/product-list.component';
+import { VendorComponent } from './vendor/vendor.component';
+import { VendorDashboardComponent } from './vendor/vendor-dashboard/vendor-dashboard.component';
+import { VendorProfileComponent } from './vendor/vendor-profile/vendor-profile.component';
+import { VendorOrdersComponent } from './vendor/vendor-orders/vendor-orders.component';
 
 const routes: Routes = [
 
@@ -43,6 +47,8 @@ const routes: Routes = [
   { path: 'register', component: RegisterComponent },
   { path: 'admin-dashboard', component: AdminDashboardComponent },
   { path: 'admin-product', component: AdminProductsComponent },
+
+  { path: 'vendor-dashboard', component: VendorComponent},
   
   
   // Customer dashboard routes - With customer layout
@@ -57,6 +63,20 @@ const routes: Routes = [
       { path: 'addresses', component: CustomerAddressComponent },
       { path: 'help', component: CustomerHelpComponent },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
+    ]
+  },
+    { 
+    path: 'vendor', 
+    component: VendorComponent, // This has the navbar + router-outlet
+    children: [
+      { path: 'dashboard', component: VendorDashboardComponent },
+      { path: 'profile', component: VendorProfileComponent },
+      { path: 'orders', component: VendorOrdersComponent },
+      { path: 'products/new', component: ProductFormComponent },
+      { path: 'product-list', component: ProductListComponent },
+      // { path: 'vendor-addresses', component: CustomerAddressComponent },
+      // { path: 'help', component: CustomerHelpComponent },
+      // { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },
 

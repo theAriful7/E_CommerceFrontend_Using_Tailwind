@@ -1,1 +1,679 @@
-<p>product-form works!</p>
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    <!-- Header Section -->
+    <div class="mb-8">
+      <div class="md:flex md:items-center md:justify-between">
+        <div class="flex-1 min-w-0">
+          <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+            {{ isEditMode ? 'Edit Product' : 'Create New Product' }}
+          </h2>
+          <p class="mt-1 text-sm text-gray-500">
+            {{ isEditMode ? 'Update your product information' : 'Add a new product to your catalog' }}
+          </p>
+        </div>
+        <div class="mt-4 flex md:mt-0 md:ml-4 space-x-3">
+          <button
+            type="button"
+            (click)="saveAsDraft()"
+            class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            Save as Draft
+          </button>
+          <button
+            type="button"
+            routerLink="/vendor/products"
+            class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            <svg class="-ml-1 mr-2 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Alert -->
+    <div *ngIf="error" class="mb-6 rounded-md bg-red-50 p-4">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-red-800">{{ error }}</h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div *ngIf="loading" class="flex justify-center items-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+    </div>
+
+    <!-- Product Form -->
+    <form *ngIf="!loading" [formGroup]="productForm" (ngSubmit)="onSubmit()" class="space-y-8">
+      
+      <!-- Basic Information Section -->
+      <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Basic Information</h3>
+          <p class="mt-1 text-sm text-gray-500">Essential product details and pricing information.</p>
+        </div>
+        <div class="px-4 py-5 sm:p-6">
+          <div class="grid grid-cols-1 gap-6 sm:grid-cols-6">
+            
+            <!-- Vendor ID Field -->
+            <div class="sm:col-span-3">
+              <label for="vendorId" class="block text-sm font-medium text-gray-700">
+                Vendor ID *
+              </label>
+              <div class="mt-1">
+                <input
+                  type="number"
+                  formControlName="vendorId"
+                  id="vendorId"
+                  min="1"
+                  [class.border-red-300]="isFieldInvalid('vendorId')"
+                  [class.focus:ring-red-500]="isFieldInvalid('vendorId')"
+                  [class.focus:border-red-500]="isFieldInvalid('vendorId')"
+                  class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  placeholder="Enter vendor ID"
+                >
+              </div>
+              <div *ngIf="isFieldInvalid('vendorId')" class="mt-1 text-sm text-red-600">
+                <span *ngIf="productForm.get('vendorId')?.errors?.['required']">Vendor ID is required</span>
+                <span *ngIf="productForm.get('vendorId')?.errors?.['min']">Vendor ID must be at least 1</span>
+              </div>
+              <p class="mt-1 text-sm text-gray-500">Enter the vendor ID from your created vendor account</p>
+            </div>
+
+            <!-- Product Name -->
+            <div class="sm:col-span-6">
+              <label for="name" class="block text-sm font-medium text-gray-700">
+                Product Name *
+              </label>
+              <div class="mt-1">
+                <input
+                  type="text"
+                  formControlName="name"
+                  id="name"
+                  [class.border-red-300]="isFieldInvalid('name')"
+                  [class.focus:ring-red-500]="isFieldInvalid('name')"
+                  [class.focus:border-red-500]="isFieldInvalid('name')"
+                  class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  placeholder="Enter product name"
+                >
+              </div>
+              <div *ngIf="isFieldInvalid('name')" class="mt-1 text-sm text-red-600">
+                <span *ngIf="productForm.get('name')?.errors?.['required']">Product name is required</span>
+                <span *ngIf="productForm.get('name')?.errors?.['minlength']">Product name must be at least 3 characters</span>
+              </div>
+            </div>
+
+            <!-- Description -->
+            <div class="sm:col-span-6">
+              <label for="description" class="block text-sm font-medium text-gray-700">
+                Description *
+              </label>
+              <div class="mt-1">
+                <textarea
+                  formControlName="description"
+                  id="description"
+                  rows="4"
+                  [class.border-red-300]="isFieldInvalid('description')"
+                  [class.focus:ring-red-500]="isFieldInvalid('description')"
+                  [class.focus:border-red-500]="isFieldInvalid('description')"
+                  class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  placeholder="Enter detailed product description"
+                ></textarea>
+              </div>
+              <div *ngIf="isFieldInvalid('description')" class="mt-1 text-sm text-red-600">
+                <span *ngIf="productForm.get('description')?.errors?.['required']">Description is required</span>
+                <span *ngIf="productForm.get('description')?.errors?.['minlength']">Description must be at least 10 characters</span>
+              </div>
+            </div>
+
+            <!-- Price, Stock, and SKU -->
+            <div class="sm:col-span-2">
+              <label for="price" class="block text-sm font-medium text-gray-700">
+                Price (&#x09F3;) *
+              </label>
+              <div class="mt-1 relative rounded-md shadow-sm">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span class="text-gray-500 sm:text-sm">&#x09F3;</span>
+                </div>
+                <input
+                  type="number"
+                  formControlName="price"
+                  id="price"
+                  min="0"
+                  step="0.01"
+                  [class.border-red-300]="isFieldInvalid('price')"
+                  [class.focus:ring-red-500]="isFieldInvalid('price')"
+                  [class.focus:border-red-500]="isFieldInvalid('price')"
+                  class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-7 pr-12 sm:text-sm border-gray-300 rounded-md"
+                  placeholder="0.00"
+                >
+              </div>
+              <div *ngIf="isFieldInvalid('price')" class="mt-1 text-sm text-red-600">
+                <span *ngIf="productForm.get('price')?.errors?.['required']">Price is required</span>
+                <span *ngIf="productForm.get('price')?.errors?.['min']">Price must be greater than 0</span>
+              </div>
+            </div>
+
+            <div class="sm:col-span-2">
+              <label for="stock" class="block text-sm font-medium text-gray-700">
+                Stock Quantity *
+              </label>
+              <div class="mt-1">
+                <input
+                  type="number"
+                  formControlName="stock"
+                  id="stock"
+                  min="0"
+                  [class.border-red-300]="isFieldInvalid('stock')"
+                  [class.focus:ring-red-500]="isFieldInvalid('stock')"
+                  [class.focus:border-red-500]="isFieldInvalid('stock')"
+                  class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  placeholder="0"
+                >
+              </div>
+              <div *ngIf="isFieldInvalid('stock')" class="mt-1 text-sm text-red-600">
+                <span *ngIf="productForm.get('stock')?.errors?.['required']">Stock quantity is required</span>
+                <span *ngIf="productForm.get('stock')?.errors?.['min']">Stock cannot be negative</span>
+              </div>
+            </div>
+
+            <div class="sm:col-span-2">
+              <label for="sku" class="block text-sm font-medium text-gray-700">
+                SKU *
+              </label>
+              <div class="mt-1">
+                <input
+                  type="text"
+                  formControlName="sku"
+                  id="sku"
+                  [class.border-red-300]="isFieldInvalid('sku')"
+                  [class.focus:ring-red-500]="isFieldInvalid('sku')"
+                  [class.focus:border-red-500]="isFieldInvalid('sku')"
+                  class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  placeholder="PROD-001"
+                >
+              </div>
+              <div *ngIf="isFieldInvalid('sku')" class="mt-1 text-sm text-red-600">
+                SKU is required
+              </div>
+            </div>
+
+            <!-- Discount and Brand -->
+            <div class="sm:col-span-3">
+              <label for="discount" class="block text-sm font-medium text-gray-700">
+                Discount (%)
+              </label>
+              <div class="mt-1">
+                <input
+                  type="number"
+                  formControlName="discount"
+                  id="discount"
+                  min="0"
+                  max="100"
+                  class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  placeholder="0"
+                >
+              </div>
+            </div>
+
+            <div class="sm:col-span-3">
+              <label for="brand" class="block text-sm font-medium text-gray-700">
+                Brand
+              </label>
+              <div class="mt-1">
+                <input
+                  type="text"
+                  formControlName="brand"
+                  id="brand"
+                  class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  placeholder="Enter brand name"
+                >
+              </div>
+            </div>
+
+            <!-- Category and Subcategory -->
+            <div class="sm:col-span-3">
+              <label for="categoryId" class="block text-sm font-medium text-gray-700">
+                Category *
+              </label>
+              <div class="mt-1">
+                <select
+                  formControlName="categoryId"
+                  id="categoryId"
+                  (change)="onCategoryChange()"
+                  [class.border-red-300]="isFieldInvalid('categoryId')"
+                  [class.focus:ring-red-500]="isFieldInvalid('categoryId')"
+                  [class.focus:border-red-500]="isFieldInvalid('categoryId')"
+                  class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                >
+                  <option value="">Select a category</option>
+                  <option *ngFor="let category of categories" [value]="category.id">
+                    {{ category.name }}
+                  </option>
+                </select>
+              </div>
+              <div *ngIf="isFieldInvalid('categoryId')" class="mt-1 text-sm text-red-600">
+                Category is required
+              </div>
+            </div>
+
+            <div class="sm:col-span-3">
+              <label for="subCategoryId" class="block text-sm font-medium text-gray-700">
+                Subcategory
+              </label>
+              <div class="mt-1">
+                <select
+                  formControlName="subCategoryId"
+                  id="subCategoryId"
+                  class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                >
+                  <option value="">Select a subcategory</option>
+                  <option *ngFor="let subCategory of subCategories" [value]="subCategory.id">
+                    {{ subCategory.name }}
+                  </option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Product Images Section -->
+      <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Product Images</h3>
+          <p class="mt-1 text-sm text-gray-500">Add high-quality images to showcase your product.</p>
+        </div>
+        <div class="px-4 py-5 sm:p-6">
+          <div formArrayName="imageUrls">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+              <div *ngFor="let imageUrl of imageUrls.controls; let i = index" class="relative group">
+                <div class="aspect-w-1 aspect-h-1 bg-gray-200 rounded-lg overflow-hidden">
+                  <img 
+                    [src]="imageUrl.value" 
+                    alt="Product image" 
+                    class="w-full h-48 object-cover"
+                    (error)="imageUrl.patchValue('')"
+                  >
+                  <div *ngIf="!imageUrl.value" class="w-full h-48 flex items-center justify-center bg-gray-100">
+                    <svg class="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                  </div>
+                </div>
+                <div class="mt-2 flex space-x-2">
+                  <input
+                    type="url"
+                    [formControlName]="i"
+                    [class.border-red-300]="imageUrl.invalid && (imageUrl.dirty || imageUrl.touched || submitted)"
+                    class="flex-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                    placeholder="https://example.com/image.jpg"
+                  >
+                  <button
+                    type="button"
+                    (click)="removeImageUrl(i)"
+                    class="inline-flex items-center p-2 border border-transparent rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                  >
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                  </button>
+                </div>
+                <div *ngIf="imageUrl.invalid && (imageUrl.dirty || imageUrl.touched || submitted)" class="mt-1 text-sm text-red-600">
+                  Valid image URL is required
+                </div>
+              </div>
+            </div>
+            
+            <button
+              type="button"
+              (click)="addImageUrl()"
+              class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              <svg class="-ml-1 mr-2 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              Add Another Image
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Product Specifications & Variants -->
+      <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Product Specifications & Variants</h3>
+          <p class="mt-1 text-sm text-gray-500">Define product attributes, colors, sizes, and other specifications.</p>
+        </div>
+        <div class="px-4 py-5 sm:p-6">
+          
+          <!-- Color Selection -->
+          <div class="mb-8">
+            <h4 class="text-md font-medium text-gray-900 mb-4">Colors</h4>
+            <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 mb-4">
+              <div *ngFor="let color of predefinedColors" 
+                   class="relative">
+                <input type="checkbox" 
+                       [id]="'color-' + color.name"
+                       [value]="color.name"
+                       (change)="toggleColor(color.name)"
+                       [checked]="isColorSelected(color.name)"
+                       class="absolute opacity-0 w-0 h-0">
+                <label [for]="'color-' + color.name"
+                       class="flex flex-col items-center p-3 border-2 rounded-lg cursor-pointer transition-all duration-200"
+                       [class.border-indigo-500]="isColorSelected(color.name)"
+                       [class.border-gray-200]="!isColorSelected(color.name)"
+                       [class.bg-indigo-50]="isColorSelected(color.name)">
+                  <div class="w-8 h-8 rounded-full mb-2 border border-gray-300" 
+                       [style.background]="color.value"></div>
+                  <span class="text-sm font-medium text-gray-700">{{ color.name }}</span>
+                </label>
+              </div>
+            </div>
+            
+            <!-- Custom Color Input -->
+            <div class="mt-4">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Add Custom Color</label>
+              <div class="flex space-x-3">
+                <input type="text" 
+                       [(ngModel)]="customColorName"
+                       [ngModelOptions]="{standalone: true}"
+                       class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-1/2 sm:text-sm border-gray-300 rounded-md"
+                       placeholder="Color name">
+                <input type="color" 
+                       [(ngModel)]="customColorValue"
+                       [ngModelOptions]="{standalone: true}"
+                       class="h-10 w-20 cursor-pointer rounded border border-gray-300">
+                <button type="button"
+                        (click)="addCustomColor()"
+                        class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                  Add Color
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Size Selection -->
+          <div class="mb-8">
+            <h4 class="text-md font-medium text-gray-900 mb-4">Sizes</h4>
+            <div class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2">
+              <div *ngFor="let size of predefinedSizes" 
+                   class="relative">
+                <input type="checkbox" 
+                       [id]="'size-' + size"
+                       [value]="size"
+                       (change)="toggleSize(size)"
+                       [checked]="isSizeSelected(size)"
+                       class="absolute opacity-0 w-0 h-0">
+                <label [for]="'size-' + size"
+                       class="flex items-center justify-center p-3 border-2 rounded-md cursor-pointer transition-all duration-200 text-sm font-medium"
+                       [class.border-indigo-500]="isSizeSelected(size)"
+                       [class.border-gray-200]="!isSizeSelected(size)"
+                       [class.bg-indigo-500]="isSizeSelected(size)"
+                       [class.text-white]="isSizeSelected(size)"
+                       [class.text-gray-700]="!isSizeSelected(size)">
+                  {{ size }}
+                </label>
+              </div>
+            </div>
+            
+            <!-- Custom Size Input -->
+            <div class="mt-4">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Add Custom Size</label>
+              <div class="flex space-x-3">
+                <input type="text" 
+                       [(ngModel)]="customSize"
+                       [ngModelOptions]="{standalone: true}"
+                       class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-1/3 sm:text-sm border-gray-300 rounded-md"
+                       placeholder="e.g., 2XL, 38W">
+                <button type="button"
+                        (click)="addCustomSize()"
+                        class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                  Add Size
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Additional Specifications -->
+          <div>
+            <h4 class="text-md font-medium text-gray-900 mb-4">Additional Specifications</h4>
+            <div formArrayName="specifications">
+              <div *ngFor="let specification of specifications.controls; let i = index" [formGroupName]="i" class="border border-gray-200 rounded-lg p-4 mb-4">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                  <!-- Specification Type -->
+                  <div class="md:col-span-4">
+                    <label [for]="'type_' + i" class="block text-sm font-medium text-gray-700">Type</label>
+                    <select
+                      formControlName="key"
+                      [id]="'type_' + i"
+                      class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    >
+                      <option value="">Select specification type</option>
+                      <option *ngFor="let specType of specificationTypes" [value]="specType">
+                        {{ specType }}
+                      </option>
+                      <option value="custom">Custom</option>
+                    </select>
+                  </div>
+                  
+                  <!-- Specification Value -->
+                  <div class="md:col-span-6">
+                    <label [for]="'value_' + i" class="block text-sm font-medium text-gray-700">Value</label>
+                    <input
+                      type="text"
+                      formControlName="value"
+                      [id]="'value_' + i"
+                      class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      placeholder="Enter specification value"
+                    >
+                  </div>
+
+                  <!-- Remove Button -->
+                  <div class="md:col-span-2 flex items-end">
+                    <button
+                      type="button"
+                      (click)="removeSpecification(i)"
+                      class="w-full inline-flex justify-center items-center p-2 border border-transparent rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                    >
+                      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <button
+                type="button"
+                (click)="addSpecification()"
+                class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                <svg class="-ml-1 mr-2 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Add Specification
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shipping & Inventory -->
+      <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Shipping & Inventory</h3>
+          <p class="mt-1 text-sm text-gray-500">Configure shipping options and inventory management.</p>
+        </div>
+        <div class="px-4 py-5 sm:p-6">
+          <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <!-- Weight -->
+            <div>
+              <label for="weight" class="block text-sm font-medium text-gray-700">Weight (kg)</label>
+              <div class="mt-1">
+                <input
+                  type="number"
+                  formControlName="weight"
+                  id="weight"
+                  min="0"
+                  step="0.1"
+                  class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  placeholder="0.5"
+                >
+              </div>
+            </div>
+
+            <!-- Dimensions -->
+            <div class="grid grid-cols-3 gap-3">
+              <div>
+                <label for="length" class="block text-sm font-medium text-gray-700">Length (cm)</label>
+                <input
+                  type="number"
+                  formControlName="length"
+                  id="length"
+                  min="0"
+                  class="mt-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  placeholder="Length"
+                >
+              </div>
+              <div>
+                <label for="width" class="block text-sm font-medium text-gray-700">Width (cm)</label>
+                <input
+                  type="number"
+                  formControlName="width"
+                  id="width"
+                  min="0"
+                  class="mt-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  placeholder="Width"
+                >
+              </div>
+              <div>
+                <label for="height" class="block text-sm font-medium text-gray-700">Height (cm)</label>
+                <input
+                  type="number"
+                  formControlName="height"
+                  id="height"
+                  min="0"
+                  class="mt-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  placeholder="Height"
+                >
+              </div>
+            </div>
+
+            <!-- Shipping Class -->
+            <div>
+              <label for="shippingClass" class="block text-sm font-medium text-gray-700">Shipping Class</label>
+              <select
+                formControlName="shippingClass"
+                id="shippingClass"
+                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              >
+                <option value="standard">Standard Shipping</option>
+                <option value="express">Express Shipping</option>
+                <option value="free">Free Shipping</option>
+                <option value="heavy">Heavy/Bulky Item</option>
+              </select>
+            </div>
+
+            <!-- Inventory Tracking -->
+            <div>
+              <label for="manageStock" class="block text-sm font-medium text-gray-700">Inventory Management</label>
+              <div class="mt-2 flex items-center">
+                <input
+                  type="checkbox"
+                  formControlName="manageStock"
+                  id="manageStock"
+                  class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                >
+                <label for="manageStock" class="ml-2 block text-sm text-gray-900">
+                  Track inventory quantity
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEO & Advanced Settings -->
+      <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">SEO & Advanced Settings</h3>
+          <p class="mt-1 text-sm text-gray-500">Optimize your product for search engines and configure advanced options.</p>
+        </div>
+        <div class="px-4 py-5 sm:p-6">
+          <div class="grid grid-cols-1 gap-6">
+            <!-- SEO Title -->
+            <div>
+              <label for="seoTitle" class="block text-sm font-medium text-gray-700">SEO Title</label>
+              <input
+                type="text"
+                formControlName="seoTitle"
+                id="seoTitle"
+                class="mt-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                placeholder="Optimized title for search engines"
+              >
+            </div>
+
+            <!-- Meta Description -->
+            <div>
+              <label for="metaDescription" class="block text-sm font-medium text-gray-700">Meta Description</label>
+              <textarea
+                formControlName="metaDescription"
+                id="metaDescription"
+                rows="3"
+                class="mt-1 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                placeholder="Brief description for search engine results"
+              ></textarea>
+            </div>
+
+            <!-- Product Status -->
+            <div>
+              <label for="status" class="block text-sm font-medium text-gray-700">Product Status</label>
+              <select
+                formControlName="status"
+                id="status"
+                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              >
+                <option value="draft">Draft</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="flex justify-end space-x-3 pt-6">
+        <button
+          type="button"
+          routerLink="/vendor/products"
+          class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          [disabled]="productForm.invalid || loading"
+          class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <svg *ngIf="loading" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          {{ isEditMode ? 'Update Product' : 'Create Product' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
