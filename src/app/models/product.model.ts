@@ -1,13 +1,43 @@
-import { Category } from "./category.model";
-
-// ProductRequestDTO & ProductResponseDTO এর frontend model
 export interface Product {
-  id?: number;          // Optional, কারণ create করার সময় id থাকে না
+  id?: number;
   name: string;
   description: string;
   price: number;
   stock: number;
-  imageUrl: string;
-  category: Category;    // শুধু Request এ যাবে
-  isActive : boolean;
+  imageUrls: string[];
+  discount?: number;
+  brand?: string;
+  categoryName?: string;
+  subCategoryName?: string;
+  status?: ProductStatus;
+  vendorId?: number;
+  vendorName?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  specifications: ProductSpecification[];
+}
+
+export interface ProductSpecification {
+  key: string;
+  value: string;
+  displayOrder?: number;
+}
+
+export interface ProductRequest {
+  name: string;
+  description: string;
+  price: number;
+  stock: number;
+  imageUrls: string[];
+  categoryId: number;
+  subCategoryId?: number;
+  discount?: number;
+  brand?: string;
+  specifications: ProductSpecification[];
+}
+
+export enum ProductStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED'
 }

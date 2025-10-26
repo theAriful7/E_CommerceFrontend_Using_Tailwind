@@ -13,8 +13,29 @@ import { LoginComponent } from './auth/login/login.component';
 import { RegisterComponent } from './auth/register/register.component';
 import { AdminDashboardComponent } from './admin/admin-dashboard/admin-dashboard.component';
 import { AdminProductsComponent } from './admin/admin-products/admin-products.component';
+import { CategoryFormComponent } from './components/category-form/category-form.component';
+import { CategoryListComponent } from './components/category-list/category-list.component';
+import { ProductFormComponent } from './components/product-form/product-form.component';
+import { SubCategoryFormComponent } from './components/sub-category-form/sub-category-form.component';
+import { SubCategoryListComponent } from './components/sub-category-list/sub-category-list.component';
+import { ProductListComponent } from './components/product-list/product-list.component';
 
 const routes: Routes = [
+
+    // Products
+  { path: 'products', component: ProductListComponent },
+  { path: 'products/new', component: ProductFormComponent },
+  { path: 'products/edit/:id', component: ProductFormComponent },
+  
+  // Categories
+  { path: 'categories', component: CategoryListComponent },
+  { path: 'categories/new', component: CategoryFormComponent },
+  { path: 'categories/edit/:id', component: CategoryFormComponent },
+  
+  // Sub-Categories
+  { path: 'sub-categories', component: SubCategoryListComponent },
+  { path: 'sub-categories/new', component: SubCategoryFormComponent },
+  { path: 'sub-categories/edit/:id', component: SubCategoryFormComponent },
   // Storefront routes - No layout, just plain pages
   { path: '', component: HomeComponent }, // Main store page
   { path: 'home', component: HomeComponent },

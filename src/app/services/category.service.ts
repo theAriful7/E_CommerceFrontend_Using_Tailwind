@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Category } from '../models/category.model';
+import { Category, CategoryRequest, CategoryResponse } from '../models/category.model';
 
 @Injectable({
   providedIn: 'root'
@@ -10,25 +10,32 @@ export class CategoryService {
 
   private baseUrl = 'http://localhost:8080/api/categories';
 
-  constructor(private http: HttpClient) {}
+  //  private apiUrl = `${environment.apiUrl}/categories`;
 
-  getAll(): Observable<Category[]> {
-    return this.http.get<Category[]>(this.baseUrl);
+  constructor(private http: HttpClient) { }
+
+  // Create Category
+  createCategory(category: CategoryRequest): Observable<CategoryResponse> {
+    return this.http.post<CategoryResponse>(this.baseUrl, category);
   }
 
-  getById(id: number): Observable<Category> {
-    return this.http.get<Category>(`${this.baseUrl}/${id}`);
+  // Get All Categories
+  getAllCategories(): Observable<CategoryResponse[]> {
+    return this.http.get<CategoryResponse[]>(this.baseUrl);
   }
 
-  create(category: Category): Observable<Category> {
-    return this.http.post<Category>(this.baseUrl, category);
+  // Get Category by ID
+  getCategoryById(id: number): Observable<CategoryResponse> {
+    return this.http.get<CategoryResponse>(`${this.baseUrl}/${id}`);
   }
 
-  update(id: number, category: Category): Observable<Category> {
-    return this.http.put<Category>(`${this.baseUrl}/${id}`, category);
+  // Update Category
+  updateCategory(id: number, category: CategoryRequest): Observable<CategoryResponse> {
+    return this.http.put<CategoryResponse>(`${this.baseUrl}/${id}`, category);
   }
 
-  delete(id: number): Observable<void> {
+  // Delete Category
+  deleteCategory(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 }

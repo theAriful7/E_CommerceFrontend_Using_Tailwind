@@ -39,7 +39,13 @@ import { ForgotPasswordComponent } from './auth/forgot-password/forgot-password.
 import { ResetPasswordComponent } from './auth/reset-password/reset-password.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
-import { HomeComponent } from './home/home.component'; 
+import { HomeComponent } from './home/home.component';
+import { CategoryListComponent } from './components/category-list/category-list.component';
+import { CategoryFormComponent } from './components/category-form/category-form.component';
+import { SubCategoryListComponent } from './components/sub-category-list/sub-category-list.component';
+import { SubCategoryFormComponent } from './components/sub-category-form/sub-category-form.component';
+import { ProductFormComponent } from './components/product-form/product-form.component';
+import { ProductListComponent } from './components/product-list/product-list.component'; 
 
 @NgModule({
   declarations: [
@@ -79,6 +85,12 @@ import { HomeComponent } from './home/home.component';
     ForgotPasswordComponent,
     ResetPasswordComponent,
     HomeComponent,
+    CategoryListComponent,
+    CategoryFormComponent,
+    SubCategoryListComponent,
+    SubCategoryFormComponent,
+    ProductFormComponent,
+    ProductListComponent,
     
   ],
   imports: [
