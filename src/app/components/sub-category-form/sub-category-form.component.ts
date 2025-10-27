@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 import { CategoryResponse } from 'src/app/models/category.model';
 import { SubCategoryRequest } from 'src/app/models/sub-category.model';
 import { CategoryService } from 'src/app/services/category.service';
@@ -11,14 +12,14 @@ import { SubCategoryService } from 'src/app/services/sub-category.service';
   templateUrl: './sub-category-form.component.html',
   styleUrls: ['./sub-category-form.component.css']
 })
-export class SubCategoryFormComponent implements OnInit {
-  subCategoryForm: FormGroup;
+export class SubCategoryFormComponent implements OnInit, OnDestroy {
+  subcategoryForm: FormGroup;
   categories: CategoryResponse[] = [];
   isEditMode = false;
-  subCategoryId?: number;
+  subcategoryId?: number;
   loading = false;
-  submitted = false;
-  error = '';
+  submitting = false;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private fb: FormBuilder,
@@ -27,22 +28,20 @@ export class SubCategoryFormComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router
   ) {
-    this.subCategoryForm = this.createForm();
+    this.subcategoryForm = this.createForm();
   }
 
   ngOnInit(): void {
     this.loadCategories();
-    
-    this.route.params.subscribe(params => {
-      if (params['id']) {
-        this.isEditMode = true;
-        this.subCategoryId = +params['id'];
-        this.loadSubCategory(this.subCategoryId);
-      }
-    });
+    this.checkEditMode();
   }
 
-  createForm(): FormGroup {
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private createForm(): FormGroup {
     return this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
       description: ['', [Validators.maxLength(500)]],
@@ -50,75 +49,126 @@ export class SubCategoryFormComponent implements OnInit {
     });
   }
 
-  loadCategories(): void {
-    this.categoryService.getAllCategories().subscribe({
-      next: (categories) => {
-        this.categories = categories;
-      },
-      error: (error) => {
-        console.error('Error loading categories:', error);
-      }
-    });
+  private loadCategories(): void {
+    this.loading = true;
+    this.categoryService.getAllCategories()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (categories) => {
+          this.categories = categories;
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Error loading categories:', error);
+          this.loading = false;
+        }
+      });
   }
 
-  loadSubCategory(id: number): void {
+  private checkEditMode(): void {
+    this.route.params
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(params => {
+        const id = params['id'];
+        if (id) {
+          this.isEditMode = true;
+          this.subcategoryId = +id;
+          this.loadSubcategory(this.subcategoryId);
+        }
+      });
+  }
+
+  private loadSubcategory(id: number): void {
     this.loading = true;
-    this.subCategoryService.getSubCategoryById(id).subscribe({
-      next: (subCategory) => {
-        this.subCategoryForm.patchValue({
-          name: subCategory.name,
-          description: subCategory.description,
-          categoryId: subCategory.categoryId
-        });
-        this.loading = false;
-      },
-      error: (error) => {
-        this.error = 'Error loading sub-category';
-        this.loading = false;
-        console.error('Error loading sub-category:', error);
-      }
-    });
+    this.subCategoryService.getSubCategoryById(id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (subcategory) => {
+          this.subcategoryForm.patchValue({
+            name: subcategory.name,
+            description: subcategory.description || '',
+            categoryId: subcategory.categoryId
+          });
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Error loading subcategory:', error);
+          this.loading = false;
+        }
+      });
   }
 
   onSubmit(): void {
-    this.submitted = true;
-    
-    if (this.subCategoryForm.invalid) {
+    if (this.subcategoryForm.invalid) {
+      this.markFormGroupTouched();
       return;
     }
 
-    this.loading = true;
-    const subCategoryData: SubCategoryRequest = this.subCategoryForm.value;
+    this.submitting = true;
+    const subCategoryRequest: SubCategoryRequest = this.subcategoryForm.value;
 
-    if (this.isEditMode && this.subCategoryId) {
-      this.subCategoryService.updateSubCategory(this.subCategoryId, subCategoryData).subscribe({
-        next: (subCategory) => {
-          this.loading = false;
-          this.router.navigate(['/sub-categories']);
-        },
-        error: (error) => {
-          this.error = 'Error updating sub-category';
-          this.loading = false;
-          console.error('Error updating sub-category:', error);
-        }
-      });
+    if (this.isEditMode && this.subcategoryId) {
+      this.updateSubcategory(subCategoryRequest);
     } else {
-      this.subCategoryService.createSubCategory(subCategoryData).subscribe({
-        next: (subCategory) => {
-          this.loading = false;
-          this.router.navigate(['/sub-categories']);
-        },
-        error: (error) => {
-          this.error = 'Error creating sub-category';
-          this.loading = false;
-          console.error('Error creating sub-category:', error);
-        }
-      });
+      this.createSubcategory(subCategoryRequest);
     }
   }
 
-  isFieldInvalid(fieldName: string): boolean {
-    const field = this.subCategoryForm.get(fieldName);
-    return !!field && field.invalid && (field.dirty || field.touched || this.submitted);
+  private createSubcategory(request: SubCategoryRequest): void {
+    this.subCategoryService.createSubCategory(request)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.submitting = false;
+          this.router.navigate(['/subcategories']);
+        },
+        error: (error) => {
+          console.error('Error creating subcategory:', error);
+          this.submitting = false;
+        }
+      });
+  }
+
+  private updateSubcategory(request: SubCategoryRequest): void {
+    if (!this.subcategoryId) return;
+
+    this.subCategoryService.updateSubCategory(this.subcategoryId, request)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.submitting = false;
+          this.router.navigate(['/subcategories']);
+        },
+        error: (error) => {
+          console.error('Error updating subcategory:', error);
+          this.submitting = false;
+        }
+      });
+  }
+
+  onCancel(): void {
+    this.router.navigate(['/subcategories']);
+  }
+
+  private markFormGroupTouched(): void {
+    Object.keys(this.subcategoryForm.controls).forEach(key => {
+      const control = this.subcategoryForm.get(key);
+      control?.markAsTouched();
+    });
+  }
+
+  // Helper methods for template
+  get name() { return this.subcategoryForm.get('name'); }
+  get description() { return this.subcategoryForm.get('description'); }
+  get categoryId() { return this.subcategoryForm.get('categoryId'); }
+
+  get title(): string {
+    return this.isEditMode ? 'Edit Subcategory' : 'Create Subcategory';
+  }
+
+  get submitButtonText(): string {
+    return this.submitting 
+      ? (this.isEditMode ? 'Updating...' : 'Creating...') 
+      : (this.isEditMode ? 'Update Subcategory' : 'Create Subcategory');
   }
 }

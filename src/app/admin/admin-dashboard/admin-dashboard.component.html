@@ -19,6 +19,18 @@
         
         .sidebar {
             transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .sidebar-footer {
+            flex-shrink: 0;
         }
         
         .card-hover {
@@ -78,73 +90,128 @@
                 opacity: 0;
             }
         }
+        
+        /* Custom scrollbar for sidebar */
+        .sidebar-content::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .sidebar-content::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        
+        .sidebar-content::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        
+        .sidebar-content::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        .management-section {
+            border-top: 1px solid #e2e8f0;
+            margin-top: 1rem;
+            padding-top: 1rem;
+        }
+        
+        .section-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #64748b;
+            margin-bottom: 0.5rem;
+            padding-left: 1rem;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
     <div class="flex h-screen">
         <!-- Sidebar -->
         <div class="sidebar w-64 bg-white shadow-md z-10">
-            <div class="p-6">
+            <!-- Sidebar Header -->
+            <div class="p-6 border-b border-gray-200">
                 <h1 class="text-xl font-bold text-gray-800 flex items-center">
                     <i class="fas fa-store mr-2 text-blue-500"></i>
                     E-Commerce Admin
                 </h1>
             </div>
             
-            <nav class="mt-6">
-                <div class="px-4 space-y-2">
-                    <a href="#" class="sidebar-item active flex items-center px-4 py-3 text-gray-700 rounded-lg">
-                        <i class="fas fa-chart-pie mr-3 text-blue-500"></i>
-                        <span>Dashboard</span>
-                    </a>
-                    
-                    <a routerLink="/products" class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
-                        <i class="fas fa-shopping-bag mr-3 text-green-500"></i>
-                        <span>Products</span>
-                        <span class="ml-auto bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">15</span>
-                    </a>
-                    
-                    <a href="#" class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
-                        <i class="fas fa-shopping-cart mr-3 text-purple-500"></i>
-                        <span>Orders</span>
-                        <span class="ml-auto bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">24</span>
-                    </a>
-                    
-                    <a href="#" class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
-                        <i class="fas fa-users mr-3 text-yellow-500"></i>
-                        <span>Customers</span>
-                    </a>
-                    
-                    <a href="#" class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
-                        <i class="fas fa-chart-bar mr-3 text-indigo-500"></i>
-                        <span>Analytics</span>
-                    </a>
-                    
-                    <a href="#" class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
-                        <i class="fas fa-tags mr-3 text-pink-500"></i>
-                        <span>Discounts</span>
-                    </a>
-                    
-                    <a href="#" class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
-                        <i class="fas fa-cog mr-3 text-gray-500"></i>
-                        <span>Settings</span>
-                    </a>
-                     <a routerLink="/categories/new" class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
-                        <i class="fas fa-cog mr-3 text-gray-500"></i>
-                        <span>Add Category</span>
-                    </a>
-                      <a routerLink="/categories" class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
-                        <i class="fas fa-cog mr-3 text-gray-500"></i>
-                        <span>Category List</span>
-                    </a>
-                </div>
-            </nav>
+            <!-- Scrollable Navigation -->
+            <div class="sidebar-content">
+                <nav class="py-4">
+                    <div class="px-4 space-y-1">
+                        <a href="#" class="sidebar-item active flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                            <i class="fas fa-chart-pie mr-3 text-blue-500"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        
+                        <a routerLink="/products" class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                            <i class="fas fa-shopping-bag mr-3 text-green-500"></i>
+                            <span>Products</span>
+                            <span class="ml-auto bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">15</span>
+                        </a>
+                        
+                        <a href="#" class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                            <i class="fas fa-shopping-cart mr-3 text-purple-500"></i>
+                            <span>Orders</span>
+                            <span class="ml-auto bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">24</span>
+                        </a>
+                        
+                        <a href="#" class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                            <i class="fas fa-users mr-3 text-yellow-500"></i>
+                            <span>Customers</span>
+                        </a>
+                        
+                        <a href="#" class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                            <i class="fas fa-chart-bar mr-3 text-indigo-500"></i>
+                            <span>Analytics</span>
+                        </a>
+                        
+                        <a href="#" class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                            <i class="fas fa-tags mr-3 text-pink-500"></i>
+                            <span>Discounts</span>
+                        </a>
+                        
+                        <a href="#" class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                            <i class="fas fa-cog mr-3 text-gray-500"></i>
+                            <span>Settings</span>
+                        </a>
+                        
+                        <!-- Management Section -->
+                        <div class="management-section">
+                            <div class="section-label">Management</div>
+                            
+                            <a routerLink="/categories/new" class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                                <i class="fas fa-folder-plus mr-3 text-blue-500"></i>
+                                <span>Add Category</span>
+                            </a>
+                            
+                            <a routerLink="/categories" class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                                <i class="fas fa-list mr-3 text-green-500"></i>
+                                <span>Category List</span>
+                            </a>
+                            
+                            <a routerLink="/sub-categories/new" class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                                <i class="fas fa-folder-plus mr-3 text-purple-500"></i>
+                                <span>Add Sub-Category</span>
+                            </a>
+                            
+                            <a routerLink="/sub-categories" class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg">
+                                <i class="fas fa-list mr-3 text-yellow-500"></i>
+                                <span>Sub-Category List</span>
+                            </a>
+                        </div>
+                    </div>
+                </nav>
+            </div>
             
-            <div class="absolute bottom-0 w-full p-4 border-t">
+            <!-- Fixed Profile Section at Bottom -->
+            <div class="sidebar-footer border-t border-gray-200 p-4">
                 <div class="flex items-center">
                     <img class="h-10 w-10 rounded-full object-cover" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="Admin User">
                     <div class="ml-3">
-                        <p class="text-sm font-medium text-gray-900">John Doe</p>
+                        <p class="text-sm font-medium text-gray-900">Mohammad Ariful</p>
                         <p class="text-xs text-gray-500">Administrator</p>
                     </div>
                     <button class="ml-auto text-gray-400 hover:text-gray-600">

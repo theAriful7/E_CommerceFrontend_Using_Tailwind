@@ -1,4 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { FormControl } from '@angular/forms';
+import { Router } from '@angular/router';
+import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 import { CategoryResponse } from 'src/app/models/category.model';
 import { SubCategoryResponse } from 'src/app/models/sub-category.model';
 import { CategoryService } from 'src/app/services/category.service';
@@ -9,79 +12,109 @@ import { SubCategoryService } from 'src/app/services/sub-category.service';
   templateUrl: './sub-category-list.component.html',
   styleUrls: ['./sub-category-list.component.css']
 })
-export class SubCategoryListComponent implements OnInit{
-subCategories: SubCategoryResponse[] = [];
-  categories: CategoryResponse[] = [];
-  filteredSubCategories: SubCategoryResponse[] = [];
-  selectedCategoryId: number = 0;
+export class SubCategoryListComponent implements OnInit, OnDestroy {
+  subcategories: SubCategoryResponse[] = [];
+  filteredSubcategories: SubCategoryResponse[] = [];
   loading = false;
-  error = '';
+  searchControl = new FormControl('');
+  private destroy$ = new Subject<void>();
 
   constructor(
     private subCategoryService: SubCategoryService,
-    private categoryService: CategoryService
-  ) { }
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
-    this.loadCategories();
-    this.loadSubCategories();
+    this.loadSubcategories();
+    this.setupSearch();
   }
 
-  loadCategories(): void {
-    this.categoryService.getAllCategories().subscribe({
-      next: (categories) => {
-        this.categories = categories;
-      },
-      error: (error) => {
-        console.error('Error loading categories:', error);
-      }
-    });
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  loadSubCategories(): void {
+  private loadSubcategories(): void {
     this.loading = true;
-    this.subCategoryService.getAllSubCategories().subscribe({
-      next: (subCategories) => {
-        this.subCategories = subCategories;
-        this.filteredSubCategories = subCategories;
-        this.loading = false;
-      },
-      error: (error) => {
-        this.error = 'Error loading sub-categories';
-        this.loading = false;
-        console.error('Error loading sub-categories:', error);
-      }
+    this.subCategoryService.getAllSubCategories()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (subcategories) => {
+          this.subcategories = subcategories;
+          this.filteredSubcategories = subcategories;
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Error loading subcategories:', error);
+          this.loading = false;
+        }
+      });
+  }
+
+  private setupSearch(): void {
+    this.searchControl.valueChanges
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(searchTerm => {
+        this.filterSubcategories(searchTerm || '');
+      });
+  }
+
+  private filterSubcategories(searchTerm: string): void {
+    if (!searchTerm) {
+      this.filteredSubcategories = this.subcategories;
+      return;
+    }
+
+    const term = searchTerm.toLowerCase();
+    this.filteredSubcategories = this.subcategories.filter(subcategory =>
+      subcategory.name.toLowerCase().includes(term) ||
+      subcategory.categoryName.toLowerCase().includes(term) ||
+      (subcategory.description && subcategory.description.toLowerCase().includes(term))
+    );
+  }
+
+  onCreateSubcategory(): void {
+    this.router.navigate(['/sub-categories/new']);
+  }
+
+  onEditSubcategory(id: number): void {
+    this.router.navigate(['/subcategories/edit', id]);
+  }
+
+  onDeleteSubcategory(subcategory: SubCategoryResponse): void {
+    if (confirm(`Are you sure you want to delete "${subcategory.name}"? This action cannot be undone.`)) {
+      this.subCategoryService.deleteSubCategory(subcategory.id)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: () => {
+            this.subcategories = this.subcategories.filter(sc => sc.id !== subcategory.id);
+            this.filterSubcategories(this.searchControl.value || '');
+          },
+          error: (error) => {
+            console.error('Error deleting subcategory:', error);
+            alert('Error deleting subcategory. Please try again.');
+          }
+        });
+    }
+  }
+
+  formatDate(dateString: string): string {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
     });
   }
 
-  filterByCategory(): void {
-    if (this.selectedCategoryId === 0) {
-      this.filteredSubCategories = this.subCategories;
-    } else {
-      this.subCategoryService.getSubCategoriesByCategory(this.selectedCategoryId).subscribe({
-        next: (subCategories) => {
-          this.filteredSubCategories = subCategories;
-        },
-        error: (error) => {
-          this.error = 'Error filtering sub-categories';
-          console.error('Error filtering sub-categories:', error);
-        }
-      });
-    }
+  getTotalCount(): number {
+    return this.subcategories.length;
   }
 
-  deleteSubCategory(id: number): void {
-    if (confirm('Are you sure you want to delete this sub-category?')) {
-      this.subCategoryService.deleteSubCategory(id).subscribe({
-        next: () => {
-          this.subCategories = this.subCategories.filter(sc => sc.id !== id);
-          this.filteredSubCategories = this.filteredSubCategories.filter(sc => sc.id !== id);
-        },
-        error: (error) => {
-          this.error = 'Error deleting sub-category';
-          console.error('Error deleting sub-category:', error);
-        }
-      });
-    }
+  getFilteredCount(): number {
+    return this.filteredSubcategories.length;
   }
 }
