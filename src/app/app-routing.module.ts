@@ -23,13 +23,17 @@ import { VendorComponent } from './vendor/vendor.component';
 import { VendorDashboardComponent } from './vendor/vendor-dashboard/vendor-dashboard.component';
 import { VendorProfileComponent } from './vendor/vendor-profile/vendor-profile.component';
 import { VendorOrdersComponent } from './vendor/vendor-orders/vendor-orders.component';
+import { ProductDetailsComponent } from './components/product-details/product-details.component';
 
 const routes: Routes = [
+  { path: 'products', component: ProductListComponent},
+  { path: 'products/new', component: ProductFormComponent},
+  { path: 'products/edit/:id', component: ProductFormComponent },
+  { path: 'product-detail/:id', component: ProductDetailsComponent },
+  { path: 'products/:type', component: ProductListComponent },
 
     // Products
-  { path: 'products', component: ProductListComponent },
-  { path: 'products/new', component: ProductFormComponent },
-  { path: 'products/edit/:id', component: ProductFormComponent },
+
   
   // Categories
   { path: 'categories', component: CategoryListComponent },

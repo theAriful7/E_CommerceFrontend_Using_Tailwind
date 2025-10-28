@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CategoryResponse } from '../models/category.model';
-import { Product } from '../models/product.model';
+import { FileData, Product } from '../models/product.model';
 import { CategoryService } from '../services/category.service';
 import { ProductService } from '../services/product.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-home',
@@ -13,56 +14,58 @@ export class HomeComponent implements OnInit {
   categories: CategoryResponse[] = [];
   trendingProducts: Product[] = [];
   bestSellers: Product[] = [];
+  featuredProducts: Product[] = [];
   loading = true;
+  error = '';
 
   constructor(
     private categoryService: CategoryService,
-    private productService: ProductService
-  ) {}
+    private productService: ProductService,
+    private router: Router
+  ) { }
 
   ngOnInit(): void {
-    this.loadCategories();
-    this.loadTrendingProducts();
-    this.loadBestSellers();
+    this.loadHomePageData();
+  }
+
+  loadHomePageData(): void {
+    this.loading = true;
+
+    // Use the working getAllProducts method
+    this.productService.getAllProducts().subscribe({
+      next: (products) => {
+        const approvedProducts = products.filter(product => product.status === 'ACTIVE');
+
+        console.log('Total approved products:', approvedProducts.length);
+
+        // Distribute products across sections
+        this.trendingProducts = approvedProducts.slice(0, 8);
+        this.bestSellers = approvedProducts.slice(8, 16);
+        this.featuredProducts = approvedProducts.slice(16, 24);
+
+        console.log('Trending products:', this.trendingProducts.length);
+        console.log('Best sellers:', this.bestSellers.length);
+        console.log('Featured products:', this.featuredProducts.length);
+
+        this.loadCategories();
+      },
+      error: (error) => {
+        console.error('Error loading products:', error);
+        this.error = 'Failed to load products';
+        this.loading = false;
+        this.loadCategories();
+      }
+    });
   }
 
   loadCategories(): void {
     this.categoryService.getAllCategories().subscribe({
       next: (categories) => {
-        this.categories = categories.slice(0, 6); // Take first 6 categories
-      },
-      error: (error) => {
-        console.error('Error loading categories:', error);
-      }
-    });
-  }
-
-  loadTrendingProducts(): void {
-    this.productService.getAllProducts().subscribe({
-      next: (products) => {
-        // Filter approved products and take first 4 as trending
-        this.trendingProducts = products
-          .filter(product => product.status === 'APPROVED')
-          .slice(0, 4);
-      },
-      error: (error) => {
-        console.error('Error loading trending products:', error);
-      }
-    });
-  }
-
-  loadBestSellers(): void {
-    this.productService.getAllProducts().subscribe({
-      next: (products) => {
-        // Filter approved products and take next 4 as best sellers
-        // In a real app, you might want to sort by sales or ratings
-        this.bestSellers = products
-          .filter(product => product.status === 'APPROVED')
-          .slice(4, 8);
+        this.categories = categories.slice(0, 6);
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error loading best sellers:', error);
+        console.error('Error loading categories:', error);
         this.loading = false;
       }
     });
@@ -97,8 +100,58 @@ export class HomeComponent implements OnInit {
     return price - (price * discount / 100);
   }
 
-  getProductRating(): number {
-    // In a real app, this would come from the product data
-    return 4.5;
+  getProductRating(product: Product): number {
+    // In a real app, this would come from product reviews
+    // For now, generate a random rating between 3.5 and 5
+    return Math.round((Math.random() * 1.5 + 3.5) * 10) / 10;
+  }
+
+  // getProductImage(images: FileData[]): string {
+  //   if (!images || images.length === 0) {
+  //     return 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80';
+  //   }
+
+  //   // Try to find primary image first
+  //   const primaryImage = images.find(img => img.isPrimary);
+  //   if (primaryImage) {
+  //     return this.getFullImagePath(primaryImage.filePath);
+  //   }
+
+  //   // Otherwise get the first image sorted by order
+  //   const sortedImages = [...images].sort((a, b) => a.sortOrder - b.sortOrder);
+  //   return this.getFullImagePath(sortedImages[0].filePath);
+  // }
+
+getProductImage(images?: any[]): string {
+  const defaultImg =
+    'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=500&q=80';
+
+  if (!images?.length) return defaultImg;
+
+  const image = images.find(i => i.isPrimary) || images[0];
+  return image?.filePath ? this.getFullImagePath(image.filePath) : defaultImg;
+}
+
+private getFullImagePath(path: string): string {
+  if (path.startsWith('http')) return path;
+  return `http://localhost:8080/${path.replace(/^\/?/, '')}`;
+}
+
+
+  addToCart(product: Product): void {
+    console.log('Add to cart:', product);
+    // Implement cart functionality here
+  }
+
+  addToWishlist(product: Product): void {
+    console.log('Add to wishlist:', product);
+    // Implement wishlist functionality here
+  }
+
+  viewAllProducts(type: string): void {
+    console.log('View all:', type);
+    // Navigate to product list page with the type as parameter
+    this.router.navigate(['/products', type]);
   }
 }
+

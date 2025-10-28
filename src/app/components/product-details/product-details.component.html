@@ -1,0 +1,221 @@
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    <!-- Loading Spinner -->
+    <div *ngIf="loading" class="flex justify-center items-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="error && !loading" class="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-red-800">{{ error }}</h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- Back Button -->
+    <div class="mb-6">
+      <button 
+        (click)="goBack()"
+        class="inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-700"
+      >
+        <svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+        Back to Products
+      </button>
+    </div>
+
+    <!-- Product Details -->
+    <div *ngIf="product && !loading" class="bg-white shadow-lg rounded-lg overflow-hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
+        
+        <!-- Product Images -->
+        <div class="space-y-4">
+          <!-- Main Image -->
+          <div class="aspect-w-1 aspect-h-1 bg-gray-200 rounded-lg overflow-hidden">
+            <img 
+              [src]="product.images && product.images.length > selectedImageIndex ? product.images[selectedImageIndex].filePath : '/assets/images/default-product.png'" 
+              [alt]="product.name"
+              class="w-full h-96 object-cover"
+            >
+          </div>
+
+          <!-- Image Thumbnails -->
+          <div *ngIf="product.images && product.images.length > 1" class="grid grid-cols-4 gap-2">
+            <div 
+              *ngFor="let image of product.images; let i = index"
+              (click)="selectImage(i)"
+              class="aspect-w-1 aspect-h-1 bg-gray-200 rounded-md overflow-hidden cursor-pointer border-2 transition-all duration-200"
+              [class.border-indigo-500]="i === selectedImageIndex"
+              [class.border-transparent]="i !== selectedImageIndex"
+            >
+              <img 
+                [src]="image.filePath" 
+                [alt]="image.altText || product.name"
+                class="w-full h-20 object-cover"
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Product Information -->
+        <div class="space-y-6">
+          <!-- Header -->
+          <div>
+            <!-- Status Badge -->
+            <span 
+              class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium mb-3"
+              [class]="getStatusBadgeClass(product.status)"
+            >
+              {{ getStatusText(product.status) }}
+            </span>
+
+            <h1 class="text-3xl font-bold text-gray-900">{{ product.name }}</h1>
+            
+            <!-- Vendor Info -->
+            <div class="mt-2 flex items-center text-sm text-gray-500">
+              <span>Sold by: </span>
+              <span class="ml-1 font-medium text-gray-700">{{ product.vendorName || 'Unknown Vendor' }}</span>
+            </div>
+          </div>
+
+          <!-- Price -->
+          <div class="flex items-center space-x-4">
+            <span class="text-3xl font-bold text-gray-900">&#x09F3;{{ product.price }}</span>
+            
+            <!-- Discount Badge -->
+            <span *ngIf="product.discount && product.discount > 0" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+              {{ product.discount }}% OFF
+            </span>
+          </div>
+
+          <!-- Stock Information -->
+          <div class="flex items-center space-x-4 text-sm">
+            <span 
+              class="font-medium"
+              [class.text-green-600]="product.stock > 10"
+              [class.text-yellow-600]="product.stock > 0 && product.stock <= 10"
+              [class.text-red-600]="product.stock === 0"
+            >
+              {{ product.stock > 0 ? product.stock + ' in stock' : 'Out of stock' }}
+            </span>
+            
+            <!-- SKU -->
+            <span *ngIf="product.sku" class="text-gray-500">
+              SKU: {{ product.sku }}
+            </span>
+          </div>
+
+          <!-- Description -->
+          <div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Description</h3>
+            <p class="text-gray-700 leading-relaxed">{{ product.description }}</p>
+          </div>
+
+          <!-- Brand -->
+          <div *ngIf="product.brand" class="flex items-center space-x-2">
+            <span class="text-sm text-gray-500">Brand:</span>
+            <span class="text-sm font-medium text-gray-900">{{ product.brand }}</span>
+          </div>
+
+          <!-- Quantity Selector -->
+          <div *ngIf="isProductAvailable()" class="flex items-center space-x-4">
+            <span class="text-sm font-medium text-gray-700">Quantity:</span>
+            <div class="flex items-center border border-gray-300 rounded-lg">
+              <button 
+                (click)="decreaseQuantity()"
+                class="p-2 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                [disabled]="quantity <= 1"
+              >
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                </svg>
+              </button>
+              <span class="px-4 py-2 text-gray-900 font-medium">{{ quantity }}</span>
+              <button 
+                (click)="increaseQuantity()"
+                class="p-2 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                [disabled]="!product || quantity >= product.stock"
+              >
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div *ngIf="isProductAvailable()" class="flex space-x-4">
+            <button
+              (click)="addToCart()"
+              class="flex-1 bg-indigo-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+            >
+              Add to Cart
+            </button>
+            <button
+              (click)="buyNow()"
+              class="flex-1 bg-gray-900 text-white py-3 px-6 rounded-lg font-medium hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200"
+            >
+              Buy Now
+            </button>
+          </div>
+
+          <!-- Out of Stock Message -->
+          <div *ngIf="!isProductAvailable()" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+              </div>
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-yellow-800">
+                  {{ product.stock === 0 ? 'Out of Stock' : 'Product Not Available' }}
+                </h3>
+                <p class="mt-1 text-sm text-yellow-700">
+                  {{ product.stock === 0 ? 'This product is currently out of stock.' : 'This product is pending approval.' }}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Additional Info -->
+          <div class="border-t border-gray-200 pt-6">
+            <div class="grid grid-cols-2 gap-4 text-sm text-gray-600">
+              <div>
+                <span class="font-medium text-gray-900">Category:</span>
+                <p>{{ product.categoryName || 'N/A' }}</p>
+              </div>
+              <div *ngIf="product.subCategoryName">
+                <span class="font-medium text-gray-900">Subcategory:</span>
+                <p>{{ product.subCategoryName }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Specifications Section -->
+      <div *ngIf="product.specifications && product.specifications.length > 0" class="border-t border-gray-200 px-8 py-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Specifications</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div 
+            *ngFor="let spec of product.specifications"
+            class="bg-gray-50 rounded-lg p-4"
+          >
+            <dt class="text-sm font-medium text-gray-500">{{ spec.key }}</dt>
+            <dd class="mt-1 text-sm text-gray-900">{{ spec.value }}</dd>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

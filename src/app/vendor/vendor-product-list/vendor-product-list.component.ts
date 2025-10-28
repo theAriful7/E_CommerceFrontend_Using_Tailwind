@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { Product } from 'src/app/models/product.model';
+import { FileData, Product } from 'src/app/models/product.model';
 import { ProductService } from 'src/app/services/product.service';
 
 @Component({
@@ -176,4 +176,17 @@ export class VendorProductListComponent implements OnInit {
     
     return [...new Set(categories)];
   }
+
+  // In vendor-product-list.component.ts
+getProductImage(images: FileData[]): string {
+  if (!images || images.length === 0) {
+    return '';
+  }
+  const primaryImage = images.find(img => img.isPrimary);
+  if (primaryImage) {
+    return primaryImage.filePath;
+  }
+  const sortedImages = [...images].sort((a, b) => a.sortOrder - b.sortOrder);
+  return sortedImages[0].filePath;
+}
 }

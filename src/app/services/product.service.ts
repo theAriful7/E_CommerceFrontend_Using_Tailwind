@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Product, ProductRequest, ProductStatus } from '../models/product.model';
+import { FileData, Product, ProductRequest, ProductStatus } from '../models/product.model';
 
 @Injectable({
   providedIn: 'root'
@@ -89,4 +89,65 @@ export class ProductService {
 
     return this.http.get<Product[]>(`${this.baseUrl}/filter`, { params });
   }
+
+// In ProductService - FIX THESE URLS:
+uploadProductImages(productId: number, formData: FormData): Observable<any> {
+  return this.http.post(`${this.baseUrl}/${productId}/images`, formData, { // ✅ REMOVE /products
+    reportProgress: true,
+    observe: 'events'
+  });
+}
+
+getProductImages(productId: number): Observable<FileData[]> {
+  return this.http.get<FileData[]>(`${this.baseUrl}/${productId}/images`); // ✅ REMOVE /products
+}
+
+deleteProductImage(productId: number, imageId: number): Observable<void> {
+  return this.http.delete<void>(`${this.baseUrl}/${productId}/images/${imageId}`); // ✅ REMOVE /products
+}
+
+setPrimaryImage(productId: number, imageId: number): Observable<FileData> {
+  return this.http.patch<FileData>(
+    `${this.baseUrl}/${productId}/images/${imageId}/primary`, // ✅ REMOVE /products
+    {}
+  );
+}
+  // Optional: Single API call that creates product with images
+  // createProductWithImages(formData: FormData): Observable<Product> {
+  //   return this.http.post<Product>(`${this.baseUrl}/products/with-images`, formData);
+  // }
+
+   // NEW METHODS FOR HOME PAGE
+  getTrendingProducts(limit: number = 8): Observable<Product[]> {
+    const params = new HttpParams().set('limit', limit.toString());
+    return this.http.get<Product[]>(`${this.baseUrl}/home/trending`, { params });
+  }
+
+  getBestSellers(limit: number = 8): Observable<Product[]> {
+    const params = new HttpParams().set('limit', limit.toString());
+    return this.http.get<Product[]>(`${this.baseUrl}/home/bestsellers`, { params });
+  }
+
+  getFeaturedProducts(limit: number = 8): Observable<Product[]> {
+    const params = new HttpParams().set('limit', limit.toString());
+    return this.http.get<Product[]>(`${this.baseUrl}/home/featured`, { params });
+  }
+
+  getAllHomePageProducts(limits: { trending: number, bestsellers: number, featured: number }): Observable<{
+    trending: Product[];
+    bestsellers: Product[];
+    featured: Product[];
+  }> {
+    const params = new HttpParams()
+      .set('trendingLimit', limits.trending.toString())
+      .set('bestsellersLimit', limits.bestsellers.toString())
+      .set('featuredLimit', limits.featured.toString());
+    
+    return this.http.get<{
+      trending: Product[];
+      bestsellers: Product[];
+      featured: Product[];
+    }>(`${this.baseUrl}/home/all`, { params });
+  }
+
 }

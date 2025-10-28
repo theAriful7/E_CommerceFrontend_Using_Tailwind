@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CategoryResponse } from 'src/app/models/category.model';
-import { Product, ProductStatus } from 'src/app/models/product.model';
+import { FileData, Product, ProductStatus } from 'src/app/models/product.model';
 import { SubCategoryResponse } from 'src/app/models/sub-category.model';
 import { CategoryService } from 'src/app/services/category.service';
 import { ProductService } from 'src/app/services/product.service';
@@ -110,9 +110,8 @@ export class ProductListComponent implements OnInit {
     // Category filter
     if (this.selectedCategoryId) {
       filtered = filtered.filter(product => 
-        this.productService.getProductsByCategory(this.selectedCategoryId).subscribe(products => {
-          return products.some(p => p.id === product.id);
-        })
+        product.categoryName && 
+        this.categories.some(cat => cat.id === this.selectedCategoryId && cat.name === product.categoryName)
       );
     }
 
@@ -120,7 +119,7 @@ export class ProductListComponent implements OnInit {
     if (this.selectedSubCategoryId) {
       filtered = filtered.filter(product => 
         product.subCategoryName && 
-        this.subCategories.some(sc => sc.id === this.selectedSubCategoryId)
+        this.subCategories.some(sc => sc.id === this.selectedSubCategoryId && sc.name === product.subCategoryName)
       );
     }
 
@@ -199,5 +198,28 @@ export class ProductListComponent implements OnInit {
 
   toggleFilters(): void {
     this.showFilters = !this.showFilters;
+  }
+
+  // ✅ UPDATED: Image helper method with proper path handling
+  getProductImage(images?: FileData[]): string {
+    const defaultImg = 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=500&q=80';
+
+    if (!images || images.length === 0) return defaultImg;
+
+    // Get primary image first, then first image by sort order
+    const primaryImage = images.find(img => img.isPrimary);
+    if (primaryImage) {
+      return this.getFullImagePath(primaryImage.filePath);
+    }
+
+    // Get image with lowest sort order
+    const sortedImages = [...images].sort((a, b) => a.sortOrder - b.sortOrder);
+    return this.getFullImagePath(sortedImages[0].filePath);
+  }
+
+  // ✅ ADDED: Method to convert relative paths to full URLs
+  private getFullImagePath(path: string): string {
+    if (path.startsWith('http')) return path;
+    return `http://localhost:8080/${path.replace(/^\/?/, '')}`;
   }
 }

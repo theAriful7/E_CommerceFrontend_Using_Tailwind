@@ -45,7 +45,10 @@ import { CategoryFormComponent } from './components/category-form/category-form.
 import { SubCategoryListComponent } from './components/sub-category-list/sub-category-list.component';
 import { SubCategoryFormComponent } from './components/sub-category-form/sub-category-form.component';
 import { ProductFormComponent } from './components/product-form/product-form.component';
-import { ProductListComponent } from './components/product-list/product-list.component'; 
+import { ProductListComponent } from './components/product-list/product-list.component';
+import { ProductDetailsComponent } from './components/product-details/product-details.component';
+import { CustomerListComponent } from './customer/customer-list/customer-list.component';
+import { VendorListComponent } from './vendor/vendor-list/vendor-list.component'; 
 
 @NgModule({
   declarations: [
@@ -91,6 +94,9 @@ import { ProductListComponent } from './components/product-list/product-list.com
     SubCategoryFormComponent,
     ProductFormComponent,
     ProductListComponent,
+    ProductDetailsComponent,
+    CustomerListComponent,
+    VendorListComponent,
     
   ],
   imports: [
