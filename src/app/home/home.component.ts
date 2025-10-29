@@ -1,44 +1,69 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CategoryResponse } from '../models/category.model';
 import { FileData, Product } from '../models/product.model';
 import { CategoryService } from '../services/category.service';
 import { ProductService } from '../services/product.service';
 import { Router } from '@angular/router';
+import { CartStateServiceService } from '../services/cart-state-service.service';
+import Swal from 'sweetalert2';
+import { Subscription } from 'rxjs/internal/Subscription';
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, OnDestroy {
   categories: CategoryResponse[] = [];
   trendingProducts: Product[] = [];
   bestSellers: Product[] = [];
   featuredProducts: Product[] = [];
   loading = true;
   error = '';
+  cartItemCount = 0;
+  private cartSubscription!: Subscription;
 
   constructor(
     private categoryService: CategoryService,
     private productService: ProductService,
-    private router: Router
+    private router: Router,
+    private cartStateService: CartStateServiceService
   ) { }
 
   ngOnInit(): void {
     this.loadHomePageData();
+    this.subscribeToCartUpdates();
+  }
+
+  ngOnDestroy(): void {
+    if (this.cartSubscription) {
+      this.cartSubscription.unsubscribe();
+    }
+  }
+
+  subscribeToCartUpdates(): void {
+    this.cartSubscription = this.cartStateService.cart$.subscribe({
+      next: (cart) => {
+        this.cartItemCount = cart?.items?.reduce((total, item) => total + (item.quantity || 0), 0) || 0;
+        console.log('Cart item count updated:', this.cartItemCount);
+      },
+      error: (error) => {
+        console.error('Error in cart subscription:', error);
+        this.cartItemCount = 0;
+      }
+    });
   }
 
   loadHomePageData(): void {
     this.loading = true;
 
-    // Use the working getAllProducts method
     this.productService.getAllProducts().subscribe({
       next: (products) => {
         const approvedProducts = products.filter(product => product.status === 'ACTIVE');
 
         console.log('Total approved products:', approvedProducts.length);
 
-        // Distribute products across sections
+        // Fixed slice indices
         this.trendingProducts = approvedProducts.slice(0, 8);
         this.bestSellers = approvedProducts.slice(8, 16);
         this.featuredProducts = approvedProducts.slice(16, 24);
@@ -101,57 +126,160 @@ export class HomeComponent implements OnInit {
   }
 
   getProductRating(product: Product): number {
-    // In a real app, this would come from product reviews
-    // For now, generate a random rating between 3.5 and 5
     return Math.round((Math.random() * 1.5 + 3.5) * 10) / 10;
   }
 
-  // getProductImage(images: FileData[]): string {
-  //   if (!images || images.length === 0) {
-  //     return 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80';
-  //   }
+  getProductImage(images?: any[]): string {
+    const defaultImg =
+      'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=500&q=80';
 
-  //   // Try to find primary image first
-  //   const primaryImage = images.find(img => img.isPrimary);
-  //   if (primaryImage) {
-  //     return this.getFullImagePath(primaryImage.filePath);
-  //   }
+    if (!images?.length) return defaultImg;
 
-  //   // Otherwise get the first image sorted by order
-  //   const sortedImages = [...images].sort((a, b) => a.sortOrder - b.sortOrder);
-  //   return this.getFullImagePath(sortedImages[0].filePath);
-  // }
+    const image = images.find(i => i.isPrimary) || images[0];
+    return image?.filePath ? this.getFullImagePath(image.filePath) : defaultImg;
+  }
 
-getProductImage(images?: any[]): string {
-  const defaultImg =
-    'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=500&q=80';
-
-  if (!images?.length) return defaultImg;
-
-  const image = images.find(i => i.isPrimary) || images[0];
-  return image?.filePath ? this.getFullImagePath(image.filePath) : defaultImg;
-}
-
-private getFullImagePath(path: string): string {
-  if (path.startsWith('http')) return path;
-  return `http://localhost:8080/${path.replace(/^\/?/, '')}`;
-}
-
+  private getFullImagePath(path: string): string {
+    if (path.startsWith('http')) return path;
+    return `http://localhost:8080/${path.replace(/^\/?/, '')}`;
+  }
 
   addToCart(product: Product): void {
     console.log('Add to cart:', product);
-    // Implement cart functionality here
+    this.cartStateService.addToCart(product).subscribe({
+      next: () => {
+        console.log('Product added to cart successfully');
+        this.showAddToCartSuccess(product.name);
+      },
+      error: (error) => {
+        console.error('Error adding to cart:', error);
+        this.showAddToCartError();
+      }
+    });
+  }
+
+  goToCart(): void {
+    console.log('Cart button clicked - Current count:', this.cartItemCount);
+    
+    // Use both methods to be safe
+    const serviceCount = this.cartStateService.getTotalItems();
+    const componentCount = this.cartItemCount;
+    const finalCount = Math.max(serviceCount, componentCount);
+    
+    console.log('Final cart count calculation:', { serviceCount, componentCount, finalCount });
+
+    if (finalCount === 0) {
+      console.log('Cart is empty, showing alert');
+      this.showEmptyCartAlert();
+    } else {
+      console.log('Cart has items, navigating to cart page');
+      this.router.navigate(['/cart']).then(success => {
+        console.log('Navigation successful:', success);
+      }).catch(error => {
+        console.error('Navigation failed:', error);
+      });
+    }
   }
 
   addToWishlist(product: Product): void {
     console.log('Add to wishlist:', product);
-    // Implement wishlist functionality here
+    this.showWishlistSuccess(product.name);
   }
 
   viewAllProducts(type: string): void {
     console.log('View all:', type);
-    // Navigate to product list page with the type as parameter
     this.router.navigate(['/products', type]);
   }
+
+  // SweetAlert Methods
+  private showAddToCartSuccess(productName: string): void {
+    Swal.fire({
+      title: '🎉 Added to Cart!',
+      text: `${productName} has been added to your shopping cart`,
+      icon: 'success',
+      iconColor: '#10B981',
+      confirmButtonColor: '#8B5CF6',
+      confirmButtonText: 'View Cart',
+      showCancelButton: true,
+      cancelButtonText: 'Continue Shopping',
+      timer: 3000,
+      timerProgressBar: true
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.router.navigate(['/cart']);
+      }
+    });
+  }
+
+  private showAddToCartError(): void {
+    Swal.fire({
+      title: '❌ Oops!',
+      text: 'Failed to add product to cart. Please try again.',
+      icon: 'error',
+      iconColor: '#EF4444',
+      confirmButtonColor: '#8B5CF6',
+      confirmButtonText: 'Try Again'
+    });
+  }
+
+  private showWishlistSuccess(productName: string): void {
+    Swal.fire({
+      title: '❤️ Added to Wishlist!',
+      text: `${productName} has been added to your wishlist`,
+      icon: 'success',
+      iconColor: '#F59E0B',
+      confirmButtonColor: '#8B5CF6',
+      confirmButtonText: 'Great!',
+      showConfirmButton: true,
+      timer: 2000,
+      timerProgressBar: true
+    });
+  }
+
+  private showEmptyCartAlert(): void {
+    Swal.fire({
+      title: '🛒 Your Cart is Empty',
+      text: 'Explore our amazing products and add some items to your cart first!',
+      icon: 'info',
+      iconColor: '#8B5CF6',
+      confirmButtonColor: '#8B5CF6',
+      confirmButtonText: 'Browse Products',
+      showCancelButton: true,
+      cancelButtonText: 'Maybe Later'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Scroll to products section
+        const productsSection = document.querySelector('section');
+        if (productsSection) {
+          productsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
+    });
+  }
+
+  showShopNowAlert(): void {
+  Swal.fire({
+    title: '🛍️ Great Choice!',
+    text: 'Let\'s explore our amazing collection of products!',
+    icon: 'info',
+    iconColor: '#8B5CF6',
+    confirmButtonColor: '#8B5CF6',
+    confirmButtonText: 'Let\'s Go!',
+    showCancelButton: true,
+    cancelButtonText: 'Not Now',
+    background: '#f8fafc',
+    customClass: {
+      popup: 'rounded-2xl shadow-2xl'
+    }
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Scroll to products section or navigate
+      const productsSection = document.querySelector('section');
+      if (productsSection) {
+        productsSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  });
+}
 }
 

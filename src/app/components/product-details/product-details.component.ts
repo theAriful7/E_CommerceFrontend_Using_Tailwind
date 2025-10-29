@@ -89,7 +89,7 @@ product: Product | null = null;
       totalPrice: this.product.price * this.quantity
     };
 
-    this.cartService.addToCart(cartItem).subscribe({
+    this.cartService.addCartItem(cartItem).subscribe({
       next: () => {
         alert('Product added to cart successfully!');
       },

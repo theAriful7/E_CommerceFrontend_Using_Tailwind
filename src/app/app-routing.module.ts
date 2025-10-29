@@ -24,6 +24,7 @@ import { VendorDashboardComponent } from './vendor/vendor-dashboard/vendor-dashb
 import { VendorProfileComponent } from './vendor/vendor-profile/vendor-profile.component';
 import { VendorOrdersComponent } from './vendor/vendor-orders/vendor-orders.component';
 import { ProductDetailsComponent } from './components/product-details/product-details.component';
+import { CustomerCartComponent } from './customer/customer-cart/customer-cart.component';
 
 const routes: Routes = [
   { path: 'products', component: ProductListComponent},
@@ -33,7 +34,7 @@ const routes: Routes = [
   { path: 'products/:type', component: ProductListComponent },
 
     // Products
-
+{ path: 'cart', component: CustomerCartComponent},
   
   // Categories
   { path: 'categories', component: CategoryListComponent },
@@ -51,7 +52,7 @@ const routes: Routes = [
   { path: 'register', component: RegisterComponent },
   { path: 'admin-dashboard', component: AdminDashboardComponent },
   { path: 'admin-product', component: AdminProductsComponent },
-
+  { path: 'cart', component: CustomerCartComponent },
   { path: 'vendor-dashboard', component: VendorComponent},
   
   
@@ -64,6 +65,7 @@ const routes: Routes = [
       { path: 'profile', component: CustomerProfileComponent },
       { path: 'orders', component: CustomerOrdersComponent },
       { path: 'wishlist', component: CustomerWishlistComponent },
+      
       { path: 'addresses', component: CustomerAddressComponent },
       { path: 'help', component: CustomerHelpComponent },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }

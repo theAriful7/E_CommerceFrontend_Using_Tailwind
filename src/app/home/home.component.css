@@ -1,0 +1,30 @@
+/* Custom SweetAlert Styles */
+.swal2-popup {
+  border-radius: 12px !important;
+  font-family: 'Inter', sans-serif !important;
+}
+
+.wishlist-popup {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.wishlist-popup .swal2-title,
+.wishlist-popup .swal2-content {
+  color: white !important;
+}
+
+/* Custom animation */
+@keyframes sweetAlertSlideIn {
+  from {
+    transform: translateY(-30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.swal2-show {
+  animation: sweetAlertSlideIn 0.3s !important;
+}

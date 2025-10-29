@@ -9,13 +9,13 @@ import { FileDataService } from './file-data.service';
   providedIn: 'root'
 })
 export class CartStateServiceService {
-private cart = new BehaviorSubject<Cart | null>(null);
-  private currentUserId = 1; // You should get this from auth service
+ private cart = new BehaviorSubject<Cart | null>(null);
+  private currentUserId = 1;
 
   cart$ = this.cart.asObservable();
 
   constructor(
-    private cartService: CartService, // Your existing service
+    private cartService: CartService,
     private fileDataService: FileDataService
   ) {
     this.loadUserCart();
@@ -44,48 +44,56 @@ private cart = new BehaviorSubject<Cart | null>(null);
     });
   }
 
+  // ✅ FIXED: Add to cart with proper data structure
   addToCart(product: any): Observable<CartItem> {
-    const cartItem: CartItem = {
+    const currentCartId = this.getCurrentCartId();
+
+    if (!currentCartId) {
+      console.error('❌ No cart found for user. Cannot add item.');
+      return new Observable();
+    }
+
+    // ✅ CORRECT: Send only required fields to backend
+    const cartItem: any = {
+      cartId: currentCartId,
       productId: product.id,
-      productName: product.name,
-      productImage: this.fileDataService.getProductImage(product.images),
-      pricePerItem: product.discount ? 
-        this.calculateDiscountPrice(product.price, product.discount) : product.price,
-      quantity: 1,
-      totalPrice: product.discount ? 
-        this.calculateDiscountPrice(product.price, product.discount) : product.price
+      quantity: 1
     };
 
-    console.log('Adding to cart:', cartItem);
+    console.log('🛒 Sending to backend:', cartItem);
 
     return this.cartService.addCartItem(cartItem).pipe(
       tap((addedItem) => {
-        console.log('Item added successfully:', addedItem);
-        // Refresh cart after adding item
+        console.log('✅ Item added successfully:', addedItem);
         this.loadUserCart();
         this.showAddToCartNotification(product.name);
       })
     );
   }
 
+  // ✅ FIXED: Update quantity
   updateQuantity(itemId: number, quantity: number): Observable<CartItem> {
+    console.log(`🔄 Updating item ${itemId} to quantity ${quantity}`);
     return this.cartService.updateCartItemQuantity(itemId, quantity).pipe(
-      tap(() => {
-        console.log('Quantity updated');
+      tap((updatedItem) => {
+        console.log('✅ Quantity updated successfully:', updatedItem);
         this.loadUserCart();
       })
     );
   }
 
+  // ✅ FIXED: Remove item
   removeItem(itemId: number): Observable<void> {
+    console.log(`🗑️ Removing item ${itemId}`);
     return this.cartService.removeCartItem(itemId).pipe(
       tap(() => {
-        console.log('Item removed');
+        console.log('✅ Item removed successfully');
         this.loadUserCart();
       })
     );
   }
 
+  // ✅ FIXED: Clear cart
   clearCart(): Observable<void> {
     const currentCart = this.cart.value;
     if (!currentCart?.id) {
@@ -93,9 +101,10 @@ private cart = new BehaviorSubject<Cart | null>(null);
       return new Observable();
     }
     
+    console.log(`🧹 Clearing cart ${currentCart.id}`);
     return this.cartService.clearCart(currentCart.id).pipe(
       tap(() => {
-        console.log('Cart cleared');
+        console.log('✅ Cart cleared successfully');
         this.loadUserCart();
       })
     );
@@ -104,14 +113,12 @@ private cart = new BehaviorSubject<Cart | null>(null);
   getTotalItems(): number {
     const currentCart = this.cart.value;
     const total = currentCart?.items?.reduce((total, item) => total + item.quantity, 0) || 0;
-    console.log('Total items:', total);
     return total;
   }
 
   getTotalPrice(): number {
     const currentCart = this.cart.value;
     const total = currentCart?.items?.reduce((total, item) => total + (item.totalPrice || 0), 0) || 0;
-    console.log('Total price:', total);
     return total;
   }
 
@@ -120,19 +127,16 @@ private cart = new BehaviorSubject<Cart | null>(null);
   }
 
   private showAddToCartNotification(productName: string): void {
-    // Simple browser notification
     if ('Notification' in window && Notification.permission === 'granted') {
       new Notification('Product Added', {
         body: `${productName} has been added to your cart`,
         icon: 'assets/logo.png'
       });
     } else {
-      // Fallback to console or you can implement a toast service
       console.log(`${productName} added to cart!`);
     }
   }
 
-  // Helper method to get current cart ID
   getCurrentCartId(): number | null {
     return this.cart.value?.id || null;
   }

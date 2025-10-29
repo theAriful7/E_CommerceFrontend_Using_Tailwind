@@ -98,6 +98,7 @@ import { VendorListComponent } from './vendor/vendor-list/vendor-list.component'
     CustomerListComponent,
     VendorListComponent,
     
+    
   ],
   imports: [
     BrowserModule,

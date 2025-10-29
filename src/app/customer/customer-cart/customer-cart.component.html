@@ -1,1 +1,238 @@
-<p>customer-cart works!</p>
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="container mx-auto px-4">
+    
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Shopping Cart</h1>
+        <p class="text-gray-600 mt-2">Review your items and proceed to checkout</p>
+      </div>
+      
+      <!-- View Toggle -->
+      <div class="flex items-center space-x-4 mt-4 md:mt-0">
+        <span class="text-sm text-gray-600">View:</span>
+        <div class="flex bg-white rounded-lg border border-gray-200 p-1">
+          <button 
+            (click)="setViewMode('list')"
+            [class]="viewMode === 'list' ? 'bg-purple-100 text-purple-600' : 'text-gray-600'"
+            class="p-2 rounded-md transition-colors duration-200">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </button>
+          <button 
+            (click)="setViewMode('grid')"
+            [class]="viewMode === 'grid' ? 'bg-purple-100 text-purple-600' : 'text-gray-600'"
+            class="p-2 rounded-md transition-colors duration-200">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="flex justify-center items-center py-12">
+      <div class="text-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+        <p class="mt-4 text-gray-600">Loading your cart...</p>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error && !isLoading" class="bg-red-50 border border-red-200 rounded-lg p-6 text-center mb-6">
+      <div class="text-red-600 mb-4">{{ error }}</div>
+      <button (click)="retryLoadCart()" 
+        class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors duration-200">
+        Try Again
+      </button>
+    </div>
+
+    <!-- Empty Cart -->
+    <div *ngIf="!isLoading && !error && cartItems.length === 0" class="text-center py-12">
+      <div class="max-w-md mx-auto">
+        <svg class="w-24 h-24 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+        </svg>
+        <h2 class="text-2xl font-bold text-gray-900 mb-2">Your cart is empty</h2>
+        <p class="text-gray-600 mb-6">Start shopping to add items to your cart</p>
+        <button routerLink="/"
+          class="bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors duration-200">
+          Continue Shopping
+        </button>
+      </div>
+    </div>
+
+    <!-- Cart Content -->
+    <div *ngIf="!isLoading && !error && cartItems.length > 0" class="flex flex-col lg:flex-row gap-8">
+      
+      <!-- Cart Items -->
+      <div class="flex-1">
+        <!-- Cart Actions -->
+        <div class="flex justify-between items-center mb-4">
+          <span class="text-gray-600">{{ totalItems }} {{ totalItems === 1 ? 'item' : 'items' }}</span>
+          <button (click)="clearCart()" 
+            class="text-red-600 hover:text-red-700 text-sm font-medium transition-colors duration-200">
+            Clear Cart
+          </button>
+        </div>
+
+        <!-- List View -->
+        <div *ngIf="viewMode === 'list'" class="space-y-4">
+          <div *ngFor="let item of cartItems" 
+            class="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200">
+            <div class="flex flex-col sm:flex-row gap-4">
+              <!-- Product Image -->
+              <div class="flex-shrink-0">
+                <img [src]="getProductImage(item)" 
+                     [alt]="item.productName" 
+                     class="w-20 h-20 object-cover rounded-lg"
+                     (error)="handleImageError($event)"
+                     loading="lazy">
+              </div>
+              
+              <!-- Product Details -->
+              <div class="flex-1 min-w-0">
+                <h3 class="font-semibold text-gray-900 truncate">{{ item.productName }}</h3>
+                <p class="text-purple-600 font-bold mt-1">&#2547;{{ item.pricePerItem | number:'1.2-2' }}</p>
+                <p class="text-gray-500 text-sm mt-1">Quantity: {{ item.quantity }}</p>
+                
+                <!-- Quantity Controls - SIMPLIFIED -->
+                <div class="flex items-center mt-3">
+                  <button (click)="updateQuantity(item, -1)"
+                    class="w-8 h-8 border border-gray-300 rounded-l-lg flex items-center justify-center hover:bg-gray-50 transition-colors duration-200 disabled:opacity-50"
+                    [disabled]="item.quantity <= 1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+                    </svg>
+                  </button>
+                  
+                  <span class="w-12 h-8 border-t border-b border-gray-300 flex items-center justify-center text-sm font-medium">
+                    {{ item.quantity }}
+                  </span>
+                  
+                  <button (click)="updateQuantity(item, 1)"
+                    class="w-8 h-8 border border-gray-300 rounded-r-lg flex items-center justify-center hover:bg-gray-50 transition-colors duration-200">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              
+              <!-- Item Total & Remove -->
+              <div class="flex flex-col items-end justify-between">
+                <div class="text-lg font-bold text-gray-900">
+                  &#2547;{{ getItemTotal(item) | number:'1.2-2' }}
+                </div>
+                <button (click)="removeItem(item)"
+                  class="text-red-600 hover:text-red-700 text-sm font-medium transition-colors duration-200 mt-2">
+                  Remove
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grid View -->
+        <div *ngIf="viewMode === 'grid'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div *ngFor="let item of cartItems"
+            class="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200">
+            <!-- Product Image -->
+            <div class="mb-3">
+              <img [src]="getProductImage(item)" 
+                   [alt]="item.productName" 
+                   class="w-full h-40 object-cover rounded-lg"
+                   (error)="handleImageError($event)"
+                   loading="lazy">
+            </div>
+            
+            <!-- Product Details -->
+            <h3 class="font-semibold text-gray-900 mb-2 line-clamp-2">{{ item.productName }}</h3>
+            <p class="text-purple-600 font-bold mb-2">&#2547;{{ item.pricePerItem | number:'1.2-2' }}</p>
+            <p class="text-gray-500 text-sm mb-3">Quantity: {{ item.quantity }}</p>
+            
+            <!-- Quantity Controls - SIMPLIFIED -->
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center border border-gray-300 rounded-lg">
+                <button (click)="updateQuantity(item, -1)"
+                  class="w-8 h-8 flex items-center justify-center hover:bg-gray-50 transition-colors duration-200 disabled:opacity-50"
+                  [disabled]="item.quantity <= 1">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+                  </svg>
+                </button>
+                
+                <span class="w-12 h-8 flex items-center justify-center text-sm font-medium">
+                  {{ item.quantity }}
+                </span>
+                
+                <button (click)="updateQuantity(item, 1)"
+                  class="w-8 h-8 flex items-center justify-center hover:bg-gray-50 transition-colors duration-200">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                  </svg>
+                </button>
+              </div>
+              
+              <button (click)="removeItem(item)"
+                class="text-red-600 hover:text-red-700 text-sm font-medium transition-colors duration-200">
+                Remove
+              </button>
+            </div>
+            
+            <!-- Item Total -->
+            <div class="text-lg font-bold text-gray-900 border-t pt-3">
+              Total: &#2547;{{ getItemTotal(item) | number:'1.2-2' }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Order Summary -->
+      <div class="lg:w-80">
+        <div class="bg-white rounded-lg border border-gray-200 p-6 sticky top-4">
+          <h3 class="text-xl font-bold text-gray-900 mb-4">Order Summary</h3>
+          
+          <div class="space-y-3 mb-6">
+            <div class="flex justify-between text-gray-600">
+              <span>Subtotal ({{ totalItems }} items)</span>
+              <span>&#2547;{{ totalPrice | number:'1.2-2' }}</span>
+            </div>
+            <div class="flex justify-between text-gray-600">
+              <span>Shipping</span>
+              <span>&#2547;{{ shippingCost | number:'1.2-2' }}</span>
+            </div>
+            <div class="flex justify-between text-gray-600">
+              <span>Tax (5%)</span>
+              <span>&#2547;{{ taxAmount | number:'1.2-2' }}</span>
+            </div>
+            <div class="border-t pt-3 flex justify-between text-lg font-bold text-gray-900">
+              <span>Total</span>
+              <span>&#2547;{{ (totalPrice + shippingCost + taxAmount) | number:'1.2-2' }}</span>
+            </div>
+          </div>
+          
+          <button (click)="proceedToCheckout()"
+            class="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors duration-200 mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
+            [disabled]="cartItems.length === 0">
+            Proceed to Checkout
+          </button>
+          
+          <button routerLink="/"
+            class="w-full border border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors duration-200">
+            Continue Shopping
+          </button>
+
+          <!-- Additional Info -->
+          <div class="mt-4 text-xs text-gray-500 text-center">
+            <p>Free shipping on orders over &#2547;1000</p>
+            <p class="mt-1">30-day money-back guarantee</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
